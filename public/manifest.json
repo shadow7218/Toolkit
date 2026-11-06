@@ -1,0 +1,17 @@
+{
+  "name": "Toolkit",
+  "short_name": "Toolkit",
+  "description": "Professional Color Shade Generator & Image Eyedropper",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#0E2F76",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
