@@ -9,12 +9,10 @@ import {
   Droplet,
   ChevronRight,
   LayoutGrid,
-  Pipette,
   Image as ImageIcon,
   Upload,
 } from "lucide-react";
 
-// Convert hex to rgb
 function hexToRgb(hex: string) {
   let c = hex.replace("#", "");
   if (c.length === 3) {
@@ -28,7 +26,6 @@ function hexToRgb(hex: string) {
   };
 }
 
-// Convert rgb to hex
 function rgbToHex(r: number, g: number, b: number): string {
   const h = (n: number) =>
     Math.max(0, Math.min(255, Math.round(n)))
@@ -37,13 +34,11 @@ function rgbToHex(r: number, g: number, b: number): string {
   return `#${h(r)}${h(g)}${h(b)}`.toLowerCase();
 }
 
-// Generate exactly 12 harmonious shades from light to dark
 function generate12Shades(hex: string): string[] {
   const rgb = hexToRgb(hex);
   const shades: string[] = [];
-  const total = 12;
 
-  // 1 to 3: very light tint steps
+  // 1 to 3: Light tint steps
   for (let i = 0; i < 3; i++) {
     const factor = (3 - i) * 0.28;
     const r = rgb.r + (255 - rgb.r) * factor;
@@ -52,7 +47,7 @@ function generate12Shades(hex: string): string[] {
     shades.push(rgbToHex(r, g, b));
   }
 
-  // 4 to 8: mid saturation shades around the base
+  // 4 to 8: Mid-range base colors
   for (let i = 0; i < 5; i++) {
     const factor = (2 - i) * 0.15;
     let r = rgb.r, g = rgb.g, b = rgb.b;
@@ -68,7 +63,7 @@ function generate12Shades(hex: string): string[] {
     shades.push(rgbToHex(r, g, b));
   }
 
-  // 9 to 12: deep dark shades
+  // 9 to 12: Deep shades
   for (let i = 1; i <= 4; i++) {
     const factor = Math.max(0.08, 0.65 - i * 0.14);
     const r = rgb.r * factor;
@@ -80,19 +75,13 @@ function generate12Shades(hex: string): string[] {
   return shades;
 }
 
-export default function ToolkitApp() {
+export default function Toolkit() {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"shades" | "picker" | "image">("shades");
-  
-  // Base primary color
   const [primaryColor, setPrimaryColor] = useState<string>("#0087ff");
-  // Active selected swatch
   const [selectedShadeIndex, setSelectedShadeIndex] = useState<number>(0);
-  
-  // Feedback indicator
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
 
-  // Image Eyedropper states
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -106,13 +95,6 @@ export default function ToolkitApp() {
     setTimeout(() => setCopiedLabel(null), 1500);
   };
 
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    document.documentElement.classList.toggle("dark", nextDark);
-  };
-
-  // Image processing
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -128,13 +110,13 @@ export default function ToolkitApp() {
           const img = new Image();
           img.src = src;
           img.onload = () => {
-            const maxW = 600;
+            const maxW = 500;
             const ratio = Math.min(1, maxW / img.naturalWidth);
             canvas.width = img.naturalWidth * ratio;
             canvas.height = img.naturalHeight * ratio;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           };
-        }, 80);
+        }, 100);
       };
       reader.readAsDataURL(file);
     }
@@ -157,108 +139,239 @@ export default function ToolkitApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040914] text-white flex justify-center pb-28 pt-4 px-4 font-sans select-none antialiased">
-      <div className="w-full max-w-[420px] flex flex-col gap-5">
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: isDark ? "#030712" : "#f1f5f9",
+        color: isDark ? "#ffffff" : "#0f172a",
+        padding: "16px 16px 110px 16px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "420px", display: "flex", flexDirection: "column", gap: "20px" }}>
         
         {/* Top Header */}
-        <header className="flex items-center justify-between pt-2 px-1">
-          <div className="flex items-center gap-3">
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* Toolkit layered square icon */}
-            <div className="relative w-8 h-8">
-              <div className="absolute top-0 left-0 w-6 h-6 rounded-lg bg-blue-500 opacity-60" />
-              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-lg bg-[#0087ff] shadow-lg shadow-blue-600/40" />
+            <div style={{ position: "relative", width: "32px", height: "32px" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "8px",
+                  backgroundColor: "#2563eb",
+                  opacity: 0.6,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "8px",
+                  backgroundColor: "#0087ff",
+                  boxShadow: "0 4px 14px rgba(0, 135, 255, 0.4)",
+                }}
+              />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Toolkit</h1>
+            <h1 style={{ fontSize: "24px", fontWeight: "800", letterSpacing: "-0.5px" }}>Toolkit</h1>
           </div>
 
           <button
-            onClick={toggleTheme}
+            onClick={() => setIsDark(!isDark)}
             aria-label="Toggle Theme"
-            className="w-10 h-10 rounded-full bg-[#0d1626] border border-white/10 flex items-center justify-center text-slate-300 active:scale-95 transition-transform"
+            style={{
+              width: "42px",
+              height: "42px",
+              borderRadius: "50%",
+              backgroundColor: isDark ? "#0a1324" : "#ffffff",
+              border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
           >
-            {isDark ? <Moon size={18} className="fill-slate-200 text-slate-200" /> : <Sun size={18} className="text-amber-400" />}
+            {isDark ? <Moon size={19} color="#cbd5e1" fill="#cbd5e1" /> : <Sun size={19} color="#f59e0b" />}
           </button>
         </header>
 
         {/* Big Primary Color Card */}
-        <section
-          className="relative w-full rounded-[32px] p-6 h-80 flex flex-col justify-between shadow-2xl transition-colors duration-300"
+        <div
           style={{
+            position: "relative",
+            width: "100%",
+            borderRadius: "32px",
+            padding: "24px",
+            height: "320px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
             backgroundColor: activeColor,
-            boxShadow: `0 20px 45px -10px ${activeColor}70`,
+            boxShadow: `0 24px 50px -12px ${activeColor}90`,
+            transition: "background-color 0.3s ease, box-shadow 0.3s ease",
           }}
         >
           {/* Card Top Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/25 backdrop-blur-md">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-xs font-medium text-white/95">Primary Color</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "6px 14px",
+                borderRadius: "9999px",
+                backgroundColor: "rgba(0, 0, 0, 0.28)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
+            >
+              <span
+                style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  backgroundColor: "#60a5fa",
+                  display: "inline-block",
+                }}
+              />
+              <span style={{ fontSize: "12px", fontWeight: "600", color: "#ffffff" }}>Primary Color</span>
             </div>
 
             <button
               onClick={() => handleCopy(activeColor, "card-hex")}
-              className="w-10 h-10 rounded-2xl bg-black/20 hover:bg-black/30 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform"
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "16px",
+                backgroundColor: "rgba(0, 0, 0, 0.22)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+              }}
             >
-              {copiedLabel === "card-hex" ? <Check size={18} className="text-emerald-300" /> : <Copy size={18} />}
+              {copiedLabel === "card-hex" ? <Check size={18} color="#86efac" /> : <Copy size={18} />}
             </button>
           </div>
 
           {/* Card Bottom Row */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <span className="text-4xl sm:text-[42px] font-bold tracking-tight text-white">
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+              <span style={{ fontSize: "42px", fontWeight: "800", letterSpacing: "-1px", color: "#ffffff" }}>
                 {activeColor}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-white/20 text-[11px] font-bold tracking-wider text-white uppercase backdrop-blur-sm">
+              <span
+                style={{
+                  padding: "3px 8px",
+                  borderRadius: "6px",
+                  backgroundColor: "rgba(255, 255, 255, 0.22)",
+                  fontSize: "11px",
+                  fontWeight: "800",
+                  letterSpacing: "1px",
+                  color: "#ffffff",
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
+                }}
+              >
                 HEX
               </span>
             </div>
 
             <button
-              onClick={() => handleCopy(`rgb(${activeRgb.r}, ${activeRgb.g}, ${activeRgb.b})`, "card-rgb")}
-              className="flex items-center gap-1.5 text-sm font-medium text-white/90 hover:underline active:opacity-75"
+              onClick={() => handleCopy(`RGB ${activeRgb.r}, ${activeRgb.g}, ${activeRgb.b}`, "card-rgb")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "rgba(255, 255, 255, 0.92)",
+              }}
             >
-              <span>
-                RGB {activeRgb.r}, {activeRgb.g}, {activeRgb.b}
-              </span>
-              {copiedLabel === "card-rgb" ? (
-                <Check size={14} className="text-emerald-300 ml-0.5" />
-              ) : (
-                <Copy size={14} className="ml-0.5 opacity-80" />
-              )}
+              <span>RGB {activeRgb.r}, {activeRgb.g}, {activeRgb.b}</span>
+              {copiedLabel === "card-rgb" ? <Check size={14} color="#86efac" /> : <Copy size={14} opacity={0.8} />}
             </button>
           </div>
-        </section>
+        </div>
 
-        {/* Main Content Area */}
+        {/* Tab 1: Shades View */}
         {activeTab === "shades" && (
-          <section className="bg-[#0b1322] border border-white/5 rounded-[32px] p-5 shadow-xl space-y-5">
-            {/* Shades Card Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-[#0087ff]/10 flex items-center justify-center text-[#0087ff]">
-                  <Droplet size={20} className="fill-[#0087ff]" />
+          <div
+            style={{
+              backgroundColor: isDark ? "#091222" : "#ffffff",
+              border: isDark ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(0, 0, 0, 0.06)",
+              borderRadius: "32px",
+              padding: "22px",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "18px",
+            }}
+          >
+            {/* All Shades Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "14px",
+                    backgroundColor: "rgba(0, 135, 255, 0.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#0087ff",
+                  }}
+                >
+                  <Droplet size={20} color="#0087ff" fill="#0087ff" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white tracking-tight leading-tight">All Shades</h2>
-                  <p className="text-xs text-slate-400">Explore different shades of this color</p>
+                  <h2 style={{ fontSize: "16px", fontWeight: "700", lineHeight: "1.2" }}>All Shades</h2>
+                  <p style={{ fontSize: "12px", color: isDark ? "#94a3b8" : "#64748b" }}>
+                    Explore different shades of this color
+                  </p>
                 </div>
               </div>
 
               <button
-                onClick={() => {
-                  const rotatedIndex = (selectedShadeIndex + 1) % shades.length;
-                  setSelectedShadeIndex(rotatedIndex);
+                onClick={() => setSelectedShadeIndex((selectedShadeIndex + 1) % shades.length)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 14px",
+                  borderRadius: "9999px",
+                  backgroundColor: isDark ? "#121d33" : "#f1f5f9",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: isDark ? "#cbd5e1" : "#334155",
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#131d31] hover:bg-[#18253e] text-xs font-semibold text-slate-300 transition-colors"
               >
                 <span>More</span>
                 <ChevronRight size={14} />
               </button>
             </div>
 
-            {/* 4x3 Swatch Grid */}
-            <div className="grid grid-cols-4 gap-3">
+            {/* 4x3 Rounded Swatch Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "12px",
+                width: "100%",
+              }}
+            >
               {shades.map((hex, index) => {
                 const isSelected = index === selectedShadeIndex;
                 return (
@@ -266,16 +379,36 @@ export default function ToolkitApp() {
                     key={index}
                     onClick={() => setSelectedShadeIndex(index)}
                     aria-label={`Select shade ${hex}`}
-                    style={{ backgroundColor: hex }}
-                    className={`relative aspect-square rounded-[20px] transition-transform active:scale-95 ${
-                      isSelected
-                        ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-[#0b1322] scale-[1.03]"
-                        : "hover:scale-[1.02]"
-                    }`}
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      aspectRatio: "1 / 1",
+                      borderRadius: "20px",
+                      backgroundColor: hex,
+                      outline: isSelected ? "3px solid #0087ff" : "none",
+                      outlineOffset: "2px",
+                      transform: isSelected ? "scale(1.02)" : "scale(1)",
+                      transition: "transform 0.15s ease",
+                    }}
                   >
-                    {/* Blue circular checkmark for selected state */}
+                    {/* Blue checkmark on active item */}
                     {isSelected && (
-                      <div className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-[#0087ff] text-white flex items-center justify-center shadow-md">
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "8px",
+                          right: "8px",
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "50%",
+                          backgroundColor: "#0087ff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#ffffff",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                        }}
+                      >
                         <Check size={12} strokeWidth={3} />
                       </div>
                     )}
@@ -283,65 +416,126 @@ export default function ToolkitApp() {
                 );
               })}
             </div>
-          </section>
+          </div>
         )}
 
         {/* Tab 2: Custom Base Color Picker */}
         {activeTab === "picker" && (
-          <section className="bg-[#0b1322] border border-white/5 rounded-[32px] p-6 shadow-xl space-y-5">
-            <h2 className="text-base font-bold text-white tracking-tight">Pick Any Custom Color</h2>
-            <div className="flex flex-col items-center gap-4 py-4">
-              <label className="relative cursor-pointer">
-                <input
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => {
-                    setPrimaryColor(e.target.value);
-                    setSelectedShadeIndex(0);
-                  }}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                />
-                <div
-                  className="w-24 h-24 rounded-3xl border-4 border-white/20 shadow-2xl transition-transform active:scale-95"
-                  style={{ backgroundColor: primaryColor }}
-                />
-              </label>
-              <div className="text-center">
-                <p className="font-mono text-xl font-bold uppercase">{primaryColor}</p>
-                <p className="text-xs text-slate-400 mt-1">Tap the square to open the color palette</p>
+          <div
+            style={{
+              backgroundColor: isDark ? "#091222" : "#ffffff",
+              border: isDark ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(0, 0, 0, 0.06)",
+              borderRadius: "32px",
+              padding: "24px",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "18px",
+              alignItems: "center",
+            }}
+          >
+            <h2 style={{ fontSize: "16px", fontWeight: "700" }}>Pick Base Color</h2>
+            <label style={{ position: "relative", cursor: "pointer", display: "inline-block" }}>
+              <input
+                type="color"
+                value={primaryColor}
+                onChange={(e) => {
+                  setPrimaryColor(e.target.value);
+                  setSelectedShadeIndex(0);
+                }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity: 0,
+                  width: "100%",
+                  height: "100%",
+                  cursor: "pointer",
+                }}
+              />
+              <div
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  borderRadius: "28px",
+                  backgroundColor: primaryColor,
+                  border: "4px solid rgba(255,255,255,0.2)",
+                  boxShadow: `0 14px 28px ${primaryColor}70`,
+                }}
+              />
+            </label>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontFamily: "monospace", fontSize: "20px", fontWeight: "700" }}>
+                {primaryColor.toUpperCase()}
               </div>
+              <p style={{ fontSize: "12px", color: isDark ? "#94a3b8" : "#64748b", marginTop: "4px" }}>
+                Tap the color box above to change spectrum
+              </p>
             </div>
-          </section>
+          </div>
         )}
 
         {/* Tab 3: Eyedropper from Image */}
         {activeTab === "image" && (
-          <section className="bg-[#0b1322] border border-white/5 rounded-[32px] p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
+          <div
+            style={{
+              backgroundColor: isDark ? "#091222" : "#ffffff",
+              border: isDark ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(0, 0, 0, 0.06)",
+              borderRadius: "32px",
+              padding: "22px",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h2 className="text-base font-bold text-white tracking-tight">Image Color Picker</h2>
-                <p className="text-xs text-slate-400">Tap anywhere on the image to sample</p>
+                <h2 style={{ fontSize: "16px", fontWeight: "700" }}>Image Color Picker</h2>
+                <p style={{ fontSize: "12px", color: isDark ? "#94a3b8" : "#64748b" }}>
+                  Tap anywhere on the image to sample color
+                </p>
               </div>
               {imageSrc && (
-                <label className="cursor-pointer text-xs font-semibold text-blue-400 underline">
+                <label style={{ fontSize: "12px", fontWeight: "600", color: "#0087ff", cursor: "pointer" }}>
                   Change
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
                 </label>
               )}
             </div>
 
             {!imageSrc ? (
-              <label className="flex flex-col items-center justify-center p-10 border border-dashed border-white/10 rounded-2xl bg-[#080e1a] cursor-pointer hover:border-blue-500/40 transition">
-                <Upload size={28} className="text-blue-500 mb-2" />
-                <span className="text-xs font-semibold text-slate-200">Upload Image</span>
-                <span className="text-[10px] text-slate-500 mt-0.5">JPG, PNG, WEBP</span>
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <label
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "40px 16px",
+                  borderRadius: "24px",
+                  border: isDark ? "1px dashed rgba(255,255,255,0.15)" : "1px dashed rgba(0,0,0,0.15)",
+                  backgroundColor: isDark ? "#060c18" : "#f8fafc",
+                  cursor: "pointer",
+                }}
+              >
+                <Upload size={28} color="#0087ff" style={{ marginBottom: "8px" }} />
+                <span style={{ fontSize: "13px", fontWeight: "600" }}>Upload Image</span>
+                <span style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>Tap to select photo</span>
+                <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
               </label>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden bg-black flex justify-center border border-white/10">
+              <div
+                style={{
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  backgroundColor: "#000000",
+                  display: "flex",
+                  justifyContent: "center",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full h-auto cursor-crosshair touch-none"
+                  style={{ maxWidth: "100%", height: "auto", display: "block" }}
                   onClick={(e: MouseEvent<HTMLCanvasElement>) => sampleCanvasPixel(e.clientX, e.clientY)}
                   onTouchEnd={(e: TouchEvent<HTMLCanvasElement>) => {
                     if (e.changedTouches[0]) {
@@ -351,62 +545,138 @@ export default function ToolkitApp() {
                 />
               </div>
             )}
-          </section>
+          </div>
         )}
       </div>
 
-      {/* Floating Bottom Dock Navigation */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[400px] bg-[#0c1527]/90 backdrop-blur-2xl border border-white/10 rounded-[28px] p-2 flex items-center justify-between shadow-2xl z-50">
-        
+      {/* Floating Bottom Pill Dock Navigation */}
+      <nav
+        style={{
+          position: "fixed",
+          bottom: "16px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "calc(100% - 32px)",
+          maxWidth: "400px",
+          backgroundColor: isDark ? "rgba(10, 18, 32, 0.94)" : "rgba(255, 255, 255, 0.94)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: isDark ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.08)",
+          borderRadius: "28px",
+          padding: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+          zIndex: 100,
+        }}
+      >
         {/* Shades Tab */}
         <button
           onClick={() => setActiveTab("shades")}
-          className={`relative flex-1 py-2 flex flex-col items-center gap-1 rounded-2xl transition-all ${
-            activeTab === "shades" ? "text-white" : "text-slate-400 hover:text-slate-200"
-          }`}
+          style={{
+            position: "relative",
+            flex: 1,
+            padding: "8px 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "shades" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "shades" ? (isDark ? "#ffffff" : "#0f172a") : isDark ? "#64748b" : "#94a3b8",
+          }}
         >
+          <LayoutGrid size={20} color={activeTab === "shades" ? "#0087ff" : "currentColor"} />
+          <span style={{ fontSize: "11px", fontWeight: "600" }}>Shades</span>
           {activeTab === "shades" && (
-            <div className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-2xl -z-10" />
-          )}
-          <LayoutGrid size={20} className={activeTab === "shades" ? "text-[#0087ff]" : ""} />
-          <span className="text-[11px] font-semibold">Shades</span>
-          {activeTab === "shades" && (
-            <div className="absolute -bottom-1 w-10 h-0.5 bg-[#0087ff] rounded-full shadow-[0_0_8px_#0087ff]" />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087ff",
+                boxShadow: "0 0 8px #0087ff",
+              }}
+            />
           )}
         </button>
 
         {/* Color Picker Tab */}
         <button
           onClick={() => setActiveTab("picker")}
-          className={`relative flex-1 py-2 flex flex-col items-center gap-1 rounded-2xl transition-all ${
-            activeTab === "picker" ? "text-white" : "text-slate-400 hover:text-slate-200"
-          }`}
+          style={{
+            position: "relative",
+            flex: 1,
+            padding: "8px 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "picker" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "picker" ? (isDark ? "#ffffff" : "#0f172a") : isDark ? "#64748b" : "#94a3b8",
+          }}
         >
+          <div
+            style={{
+              width: "18px",
+              height: "18px",
+              borderRadius: "50%",
+              border: "3px solid #3b82f6",
+              borderTopColor: "#f59e0b",
+              borderRightColor: "#10b981",
+              borderBottomColor: "#ef4444",
+            }}
+          />
+          <span style={{ fontSize: "11px", fontWeight: "600" }}>Color Picker</span>
           {activeTab === "picker" && (
-            <div className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-2xl -z-10" />
-          )}
-          {/* Multi-color ring icon */}
-          <div className="w-5 h-5 rounded-full border-2 border-t-amber-400 border-r-emerald-400 border-b-rose-500 border-l-blue-500" />
-          <span className="text-[11px] font-semibold">Color Picker</span>
-          {activeTab === "picker" && (
-            <div className="absolute -bottom-1 w-10 h-0.5 bg-[#0087ff] rounded-full shadow-[0_0_8px_#0087ff]" />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087ff",
+                boxShadow: "0 0 8px #0087ff",
+              }}
+            />
           )}
         </button>
 
         {/* From Image Tab */}
         <button
           onClick={() => setActiveTab("image")}
-          className={`relative flex-1 py-2 flex flex-col items-center gap-1 rounded-2xl transition-all ${
-            activeTab === "image" ? "text-white" : "text-slate-400 hover:text-slate-200"
-          }`}
+          style={{
+            position: "relative",
+            flex: 1,
+            padding: "8px 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "image" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "image" ? (isDark ? "#ffffff" : "#0f172a") : isDark ? "#64748b" : "#94a3b8",
+          }}
         >
+          <ImageIcon size={20} color={activeTab === "image" ? "#0087ff" : "currentColor"} />
+          <span style={{ fontSize: "11px", fontWeight: "600" }}>From Image</span>
           {activeTab === "image" && (
-            <div className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-2xl -z-10" />
-          )}
-          <ImageIcon size={20} className={activeTab === "image" ? "text-[#0087ff]" : ""} />
-          <span className="text-[11px] font-semibold">From Image</span>
-          {activeTab === "image" && (
-            <div className="absolute -bottom-1 w-10 h-0.5 bg-[#0087ff] rounded-full shadow-[0_0_8px_#0087ff]" />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087ff",
+                boxShadow: "0 0 8px #0087ff",
+              }}
+            />
           )}
         </button>
       </nav>
