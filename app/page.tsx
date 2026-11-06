@@ -6,13 +6,12 @@ import {
   Sun,
   Copy,
   Check,
-  Pin,
-  Upload,
-  RotateCcw,
-  Sliders,
-  Palette,
-  Layers,
+  LayoutGrid,
   Image as ImageIcon,
+  Upload,
+  Pin,
+  Sparkles,
+  ChevronRight,
 } from "lucide-react";
 
 // --- Color Helpers ---
@@ -58,8 +57,8 @@ function getLuminance(r: number, g: number, b: number): number {
 }
 
 function getColorName(h: number, s: number, l: number): string {
-  if (l < 12) return "Midnight";
-  if (l > 92 && s < 15) return "Pure White";
+  if (l < 10) return "Midnight";
+  if (l > 92 && s < 12) return "Pure White";
   if (s < 12) return "Slate Grey";
   if (h >= 345 || h < 15) return "Crimson";
   if (h >= 15 && h < 45) return "Amber Orange";
@@ -69,36 +68,20 @@ function getColorName(h: number, s: number, l: number): string {
   if (h >= 190 && h < 225) return "Sky Blue";
   if (h >= 225 && h < 265) return "Indigo";
   if (h >= 265 && h < 315) return "Purple Violet";
-  return "Hot Pink";
+  return "Rose Pink";
 }
 
 const standardWeights = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const standardLuminances = [96, 91, 82, 72, 60, 49, 40, 30, 22, 14, 8];
 
-function generateConnectedShades(baseHex: string) {
-  const rgb = hexToRgb(baseHex);
-  const { h, s } = rgbToHsl(rgb.r, rgb.g, rgb.b);
-  const lumStops = [96, 91, 82, 72, 60, 49, 40, 30, 22, 14, 8];
-
-  return standardWeights.map((weight, i) => {
-    const l = lumStops[i];
-    const targetRgb = hslToRgb(h, Math.min(s, 95), l);
-    const hex = rgbToHex(targetRgb.r, targetRgb.g, targetRgb.b);
-    return {
-      weight: `${weight}`,
-      hex,
-      rgb: `RGB ${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b}`,
-      lum: l,
-    };
-  });
-}
-
-export default function ToolkitModern() {
-  const [activeTab, setActiveTab] = useState<"picker" | "shades" | "image">("picker");
+export default function ToolkitApp() {
+  const [activeTab, setActiveTab] = useState<"shades" | "picker" | "image">("shades");
   const [isDark, setIsDark] = useState<boolean>(true);
-  const [activeHex, setActiveHex] = useState<string>("#6366F1");
+  const [activeHex, setActiveHex] = useState<string>("#EAC786");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [showAllShades, setShowAllShades] = useState<boolean>(false);
 
-  // Wheel & HSL controls
+  // Wheel values
   const activeRgb = hexToRgb(activeHex);
   const hsl = rgbToHsl(activeRgb.r, activeRgb.g, activeRgb.b);
   const [hue, setHue] = useState<number>(hsl.h);
@@ -109,12 +92,29 @@ export default function ToolkitModern() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [pickerPos, setPickerPos] = useState<{ x: number; y: number } | null>(null);
   const [magnifierData, setMagnifierData] = useState<string | null>(null);
-  const [pinnedColors, setPinnedColors] = useState<string[]>(["#6366F1", "#38BDF8", "#10B981"]);
+  const [pinnedColors, setPinnedColors] = useState<string[]>(["#EAC786", "#0087FF", "#10B981"]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wheelCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const shades = generateConnectedShades(activeHex);
+  // Generate sequence
+  const fullShades = standardWeights.map((weight, i) => {
+    const l = standardLuminances[i];
+    const targetRgb = hslToRgb(hue, Math.min(sat, 95), l);
+    const hex = rgbToHex(targetRgb.r, targetRgb.g, targetRgb.b);
+    return {
+      weight: `${weight}`,
+      hex,
+      rgb: `RGB ${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b}`,
+      lum: l,
+    };
+  });
+
+  // Filter: Default shows 50 to 900 without scrolling. "showAllShades" shows all steps including 950
+  const displayedShades = showAllShades
+    ? fullShades
+    : fullShades.filter((s) => s.weight !== "950");
+
   const colorName = getColorName(hue, sat, lum);
   const isLight = getLuminance(activeRgb.r, activeRgb.g, activeRgb.b) > 0.58;
   const textColor = isLight ? "#0B1120" : "#FFFFFF";
@@ -126,7 +126,6 @@ export default function ToolkitModern() {
     setTimeout(() => setCopiedKey(null), 1400);
   };
 
-  // Sync sliders to Hex
   const updateHsl = (newH: number, newS: number, newL: number) => {
     setHue(newH);
     setSat(newS);
@@ -135,7 +134,7 @@ export default function ToolkitModern() {
     setActiveHex(rgbToHex(converted.r, converted.g, converted.b));
   };
 
-  // Render Hue Wheel
+  // Draw Circular Color Wheel
   useEffect(() => {
     const canvas = wheelCanvasRef.current;
     if (!canvas) return;
@@ -144,7 +143,7 @@ export default function ToolkitModern() {
 
     const size = canvas.width;
     const center = size / 2;
-    const radius = center - 6;
+    const radius = center - 4;
 
     ctx.clearRect(0, 0, size, size);
 
@@ -159,17 +158,16 @@ export default function ToolkitModern() {
       ctx.fill();
     }
 
-    // Inner Cutout for Modern Ring Aesthetic
+    // Inner cutout
     ctx.beginPath();
-    ctx.arc(center, center, radius * 0.52, 0, Math.PI * 2);
-    ctx.fillStyle = "#1E293B";
+    ctx.arc(center, center, radius * 0.55, 0, Math.PI * 2);
+    ctx.fillStyle = isDark ? "#1E293B" : "#FFFFFF";
     ctx.fill();
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.stroke();
-  }, [sat, lum]);
+  }, [sat, lum, isDark]);
 
-  // Wheel interaction
   const handleWheelPick = (e: MouseEvent<HTMLCanvasElement> | TouchEvent<HTMLCanvasElement>) => {
     const canvas = wheelCanvasRef.current;
     if (!canvas) return;
@@ -185,7 +183,6 @@ export default function ToolkitModern() {
     updateHsl(Math.round(angle), sat, lum);
   };
 
-  // Image upload & canvas render
   const handleImageLoad = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -206,7 +203,6 @@ export default function ToolkitModern() {
             canvas.width = img.naturalWidth * scale;
             canvas.height = img.naturalHeight * scale;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            // Default picker to center
             inspectPixel(canvas.width / 2, canvas.height / 2);
           };
         }, 120);
@@ -215,7 +211,6 @@ export default function ToolkitModern() {
     }
   };
 
-  // Eyedropper with 4x Pixel Magnifier Bubble
   const inspectPixel = (canvasX: number, canvasY: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -236,18 +231,13 @@ export default function ToolkitModern() {
 
     setPickerPos({ x: clampedX, y: clampedY });
 
-    // Render Magnifier Snapshot
     const magCanvas = document.createElement("canvas");
     magCanvas.width = 44;
     magCanvas.height = 44;
     const magCtx = magCanvas.getContext("2d");
     if (magCtx) {
       magCtx.imageSmoothingEnabled = false;
-      magCtx.drawImage(
-        canvas,
-        clampedX - 5, clampedY - 5, 10, 10,
-        0, 0, 44, 44
-      );
+      magCtx.drawImage(canvas, clampedX - 5, clampedY - 5, 10, 10, 0, 0, 44, 44);
       setMagnifierData(magCanvas.toDataURL());
     }
   };
@@ -268,9 +258,9 @@ export default function ToolkitModern() {
       style={{
         height: "100dvh",
         maxHeight: "100dvh",
-        backgroundColor: "#0B1120",
-        color: "#F8FAFC",
-        padding: "12px 16px 86px 16px",
+        backgroundColor: isDark ? "#0B1120" : "#F8FAFC",
+        color: isDark ? "#F8FAFC" : "#0F172A",
+        padding: "12px 16px 88px 16px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -278,7 +268,7 @@ export default function ToolkitModern() {
         overflow: "hidden",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "410px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", flex: 1, minHeight: 0 }}>
+      <div style={{ width: "100%", maxWidth: "420px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", flex: 1, minHeight: 0 }}>
         
         {/* Top Header */}
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
@@ -288,8 +278,8 @@ export default function ToolkitModern() {
                 width: "28px",
                 height: "28px",
                 borderRadius: "8px",
-                background: "linear-gradient(135deg, #38BDF8 0%, #6366F1 100%)",
-                boxShadow: "0 0 16px rgba(56, 189, 248, 0.4)",
+                background: "linear-gradient(135deg, #0087FF 0%, #38BDF8 100%)",
+                boxShadow: "0 0 16px rgba(0, 135, 255, 0.4)",
                 border: "1px solid rgba(255, 255, 255, 0.2)",
               }}
             />
@@ -298,28 +288,28 @@ export default function ToolkitModern() {
 
           <button
             onClick={() => setIsDark(!isDark)}
-            aria-label="Toggle theme"
+            aria-label="Toggle Theme"
             style={{
               width: "36px",
               height: "36px",
               borderRadius: "50%",
-              backgroundColor: "#1E293B",
+              backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
               border: "1px solid rgba(255, 255, 255, 0.15)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            {isDark ? <Moon size={16} color="#94A3B8" fill="#94A3B8" /> : <Sun size={16} color="#F59E0B" />}
+            {isDark ? <Moon size={16} color="#CBD5E1" fill="#CBD5E1" /> : <Sun size={16} color="#F59E0B" />}
           </button>
         </header>
 
-        {/* Primary Color Preview Card (With Global 1px Stroke & Contrast Handling) */}
+        {/* Primary Color Preview Card */}
         <div
           style={{
             position: "relative",
             width: "100%",
-            borderRadius: "16px",
+            borderRadius: "18px",
             padding: "14px 18px",
             height: "142px",
             minHeight: "142px",
@@ -332,7 +322,7 @@ export default function ToolkitModern() {
             transition: "background-color 0.2s ease",
           }}
         >
-          {/* Top Row: Pill Tag & Copy Icon */}
+          {/* Card Top Row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div
               style={{
@@ -368,7 +358,7 @@ export default function ToolkitModern() {
             </button>
           </div>
 
-          {/* Bottom Row: Hex + RGB */}
+          {/* Card Bottom Row */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className="mono" style={{ fontSize: "28px", fontWeight: "800", letterSpacing: "-0.5px", color: textColor }}>
@@ -393,13 +383,150 @@ export default function ToolkitModern() {
           </div>
         </div>
 
-        {/* Tab 1: Vibrant Color Wheel & Sliders */}
+        {/* Tab 1: ALL SHADES (Default First Tab, No Scroll) */}
+        {activeTab === "shades" && (
+          <div
+            style={{
+              backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "18px",
+              padding: "12px 14px",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* Header with Logo Toggle Button for 50-900 / All Steps */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <span style={{ fontSize: "14px", fontWeight: "700" }}>Shades Sequence</span>
+                <span style={{ fontSize: "11px", color: "#94A3B8", display: "block" }}>
+                  {showAllShades ? "All 11 Spectrum Steps" : "Standard 50 → 900"}
+                </span>
+              </div>
+
+              {/* Logo / Toggle Button */}
+              <button
+                onClick={() => setShowAllShades(!showAllShades)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 10px",
+                  borderRadius: "9999px",
+                  backgroundColor: showAllShades ? "#0087FF" : "rgba(255, 255, 255, 0.08)",
+                  color: showAllShades ? "#FFFFFF" : "#94A3B8",
+                  fontSize: "10px",
+                  fontWeight: "700",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                }}
+              >
+                <Sparkles size={11} />
+                <span>{showAllShades ? "Show 50-900" : "Show All"}</span>
+              </button>
+            </div>
+
+            {/* Zero-Scroll Balanced Grid Container */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${displayedShades.length > 8 ? 5 : 4}, 1fr)`,
+                gap: "8px 6px",
+                width: "100%",
+                alignItems: "center",
+                justifyItems: "center",
+                padding: "4px 0",
+              }}
+            >
+              {displayedShades.map((s, idx) => {
+                const isSelected = s.hex.toUpperCase() === activeHex.toUpperCase();
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => setActiveHex(s.hex)}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "3px",
+                      cursor: "pointer",
+                      width: "100%",
+                    }}
+                  >
+                    <span className="mono" style={{ fontSize: "9px", color: isSelected ? "#38BDF8" : "#94A3B8", fontWeight: "600" }}>
+                      {s.weight}
+                    </span>
+
+                    {/* Circular Swatch Node with 1px stroke */}
+                    <div
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        backgroundColor: s.hex,
+                        border: isSelected ? "2.5px solid #0087FF" : "1px solid rgba(255, 255, 255, 0.18)",
+                        boxShadow: isSelected ? "0 0 10px #0087FF" : "none",
+                        transform: isSelected ? "scale(1.12)" : "scale(1)",
+                        transition: "transform 0.15s ease",
+                      }}
+                    />
+
+                    {/* Pill Hex Capsule */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerCopy(s.hex, `shade-${s.hex}`);
+                      }}
+                      className="mono"
+                      style={{
+                        fontSize: "9px",
+                        fontWeight: "700",
+                        padding: "2px 4px",
+                        borderRadius: "9999px",
+                        backgroundColor: isSelected ? "#0087FF" : "rgba(11, 17, 32, 0.8)",
+                        color: isSelected ? "#FFFFFF" : "#CBD5E1",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        width: "100%",
+                        maxWidth: "52px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {copiedKey === `shade-${s.hex}` ? "✓" : s.hex.replace("#", "")}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Selected Shade Inspector Footer */}
+            <div
+              style={{
+                padding: "6px 12px",
+                borderRadius: "10px",
+                backgroundColor: "rgba(11, 17, 32, 0.6)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontSize: "11px",
+              }}
+            >
+              <span style={{ color: "#94A3B8" }}>Selected Node</span>
+              <span className="mono" style={{ fontWeight: "700", color: "#F8FAFC" }}>
+                {activeHex} • {colorName}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Circular Color Wheel Picker */}
         {activeTab === "picker" && (
           <div
             style={{
-              backgroundColor: "#1E293B",
+              backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
               border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
+              borderRadius: "18px",
               padding: "12px 16px",
               flex: 1,
               display: "flex",
@@ -408,32 +535,31 @@ export default function ToolkitModern() {
               alignItems: "center",
             }}
           >
-            {/* Color Wheel with Radial Touch */}
-            <div style={{ position: "relative", width: "132px", height: "132px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {/* Round & Centered Color Wheel */}
+            <div style={{ position: "relative", width: "136px", height: "136px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <canvas
                 ref={wheelCanvasRef}
-                width={132}
-                height={132}
+                width={136}
+                height={136}
                 onClick={handleWheelPick}
                 onTouchMove={handleWheelPick}
                 style={{ borderRadius: "50%", cursor: "crosshair", touchAction: "none" }}
               />
-              {/* Center Core Preview Swatch */}
               <div
                 style={{
                   position: "absolute",
-                  width: "44px",
-                  height: "44px",
+                  width: "46px",
+                  height: "46px",
                   borderRadius: "50%",
                   backgroundColor: activeHex,
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  boxShadow: `0 0 12px ${activeHex}80`,
+                  border: "2px solid rgba(255, 255, 255, 0.4)",
+                  boxShadow: `0 0 14px ${activeHex}80`,
                 }}
               />
             </div>
 
-            {/* Sliders Container */}
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* Sliders */}
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "6px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#94A3B8" }}>
                 <span>Lightness</span>
                 <span className="mono">{lum}%</span>
@@ -447,7 +573,7 @@ export default function ToolkitModern() {
                 style={{ width: "100%" }}
               />
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#94A3B8", marginTop: "2px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#94A3B8" }}>
                 <span>Saturation</span>
                 <span className="mono">{sat}%</span>
               </div>
@@ -461,11 +587,11 @@ export default function ToolkitModern() {
               />
             </div>
 
-            {/* Color Name & Hex Badge */}
+            {/* Family & Hex Info */}
             <div
               style={{
                 width: "100%",
-                padding: "8px 12px",
+                padding: "6px 12px",
                 borderRadius: "10px",
                 backgroundColor: "rgba(11, 17, 32, 0.6)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -475,7 +601,7 @@ export default function ToolkitModern() {
               }}
             >
               <div>
-                <span style={{ fontSize: "13px", fontWeight: "700" }}>{colorName}</span>
+                <span style={{ fontSize: "12px", fontWeight: "700" }}>{colorName}</span>
                 <span style={{ fontSize: "10px", color: "#94A3B8", display: "block" }}>Dominant Family</span>
               </div>
               <span className="mono" style={{ fontSize: "12px", fontWeight: "700", color: "#38BDF8" }}>
@@ -485,139 +611,13 @@ export default function ToolkitModern() {
           </div>
         )}
 
-        {/* Tab 2: Connected Node Line Spectrum (Hue Style) */}
-        {activeTab === "shades" && (
-          <div
-            style={{
-              backgroundColor: "#1E293B",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
-              padding: "14px 12px",
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "14px", fontWeight: "700" }}>Shades Sequence</span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  padding: "2px 8px",
-                  borderRadius: "9999px",
-                  backgroundColor: "rgba(255, 255, 255, 0.06)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  color: "#94A3B8",
-                }}
-              >
-                11 Connected Nodes
-              </span>
-            </div>
-
-            {/* Connecting Baseline with Circular Swatches & Pill Hex Boxes */}
-            <div style={{ position: "relative", width: "100%", overflowX: "auto", padding: "16px 4px 6px 4px" }}>
-              {/* Continuous horizontal connecting line */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "35px",
-                  left: "12px",
-                  right: "12px",
-                  height: "2px",
-                  backgroundColor: "rgba(255, 255, 255, 0.12)",
-                  zIndex: 1,
-                }}
-              />
-
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "14px", position: "relative", zIndex: 2, minWidth: "max-content" }}>
-                {shades.map((s, idx) => {
-                  const isSelected = s.hex.toUpperCase() === activeHex.toUpperCase();
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveHex(s.hex)}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "6px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {/* Weight Tag */}
-                      <span className="mono" style={{ fontSize: "10px", color: isSelected ? "#38BDF8" : "#94A3B8", fontWeight: "600" }}>
-                        {s.weight}
-                      </span>
-
-                      {/* Circular Swatch Node with 1px Safety Stroke */}
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          backgroundColor: s.hex,
-                          border: isSelected ? "2.5px solid #38BDF8" : "1px solid rgba(255, 255, 255, 0.18)",
-                          boxShadow: isSelected ? "0 0 10px #38BDF8" : "none",
-                          transform: isSelected ? "scale(1.12)" : "scale(1)",
-                          transition: "transform 0.15s ease",
-                        }}
-                      />
-
-                      {/* Pill-shaped Hex Box */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          triggerCopy(s.hex, `shade-${s.hex}`);
-                        }}
-                        className="mono"
-                        style={{
-                          fontSize: "10px",
-                          fontWeight: "700",
-                          padding: "3px 7px",
-                          borderRadius: "9999px",
-                          backgroundColor: isSelected ? "#38BDF8" : "rgba(11, 17, 32, 0.8)",
-                          color: isSelected ? "#0B1120" : "#CBD5E1",
-                          border: "1px solid rgba(255, 255, 255, 0.12)",
-                          marginTop: "2px",
-                        }}
-                      >
-                        {copiedKey === `shade-${s.hex}` ? "COPIED" : s.hex.replace("#", "")}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Selected Shade Inspector Banner */}
-            <div
-              style={{
-                padding: "8px 12px",
-                borderRadius: "10px",
-                backgroundColor: "rgba(11, 17, 32, 0.6)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                fontSize: "12px",
-              }}
-            >
-              <span style={{ color: "#94A3B8" }}>Selected Node</span>
-              <span className="mono" style={{ fontWeight: "700", color: "#F8FAFC" }}>
-                {activeHex} • {colorName}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Interactive Eyedropper with Real Magnifier Bubble & Pinned Palette */}
+        {/* Tab 3: Eyedropper with Real Magnifier Bubble */}
         {activeTab === "image" && (
           <div
             style={{
-              backgroundColor: "#1E293B",
+              backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
               border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "16px",
+              borderRadius: "18px",
               padding: "12px 14px",
               flex: 1,
               display: "flex",
@@ -628,7 +628,7 @@ export default function ToolkitModern() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "14px", fontWeight: "700" }}>Eyedropper Canvas</span>
               {imageSrc && (
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#38BDF8", cursor: "pointer" }}>
+                <label style={{ fontSize: "11px", fontWeight: "600", color: "#0087FF", cursor: "pointer" }}>
                   Replace
                   <input type="file" accept="image/*" onChange={handleImageLoad} style={{ display: "none" }} />
                 </label>
@@ -649,7 +649,7 @@ export default function ToolkitModern() {
                   cursor: "pointer",
                 }}
               >
-                <Upload size={24} color="#38BDF8" style={{ marginBottom: "6px" }} />
+                <Upload size={24} color="#0087FF" style={{ marginBottom: "6px" }} />
                 <span style={{ fontSize: "12px", fontWeight: "600" }}>Select Image</span>
                 <span style={{ fontSize: "10px", color: "#94A3B8" }}>Tap to sample pixels</span>
                 <input type="file" accept="image/*" onChange={handleImageLoad} style={{ display: "none" }} />
@@ -673,7 +673,6 @@ export default function ToolkitModern() {
                   onTouchMove={onCanvasTouch}
                 />
 
-                {/* Draggable Crosshair with Magnifier Loupe Bubble */}
                 {pickerPos && magnifierData && (
                   <div
                     style={{
@@ -684,7 +683,6 @@ export default function ToolkitModern() {
                       pointerEvents: "none",
                     }}
                   >
-                    {/* Hovering Zoom Loupe Bubble */}
                     <div
                       style={{
                         position: "absolute",
@@ -695,7 +693,7 @@ export default function ToolkitModern() {
                         height: "44px",
                         borderRadius: "50%",
                         overflow: "hidden",
-                        border: "2px solid #38BDF8",
+                        border: "2px solid #0087FF",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.6)",
                         backgroundColor: "#000",
                       }}
@@ -714,7 +712,6 @@ export default function ToolkitModern() {
                       </div>
                     </div>
 
-                    {/* Target Crosshair */}
                     <div
                       style={{
                         width: "22px",
@@ -729,7 +726,7 @@ export default function ToolkitModern() {
               </div>
             )}
 
-            {/* Pinned Color Shelf (Save Multiple Colors) */}
+            {/* Pinned Swatches */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "11px", color: "#94A3B8" }}>Pinned:</span>
@@ -763,8 +760,8 @@ export default function ToolkitModern() {
                   gap: "4px",
                   padding: "4px 8px",
                   borderRadius: "8px",
-                  backgroundColor: "rgba(56, 189, 248, 0.15)",
-                  color: "#38BDF8",
+                  backgroundColor: "rgba(0, 135, 255, 0.15)",
+                  color: "#0087FF",
                   fontSize: "10px",
                   fontWeight: "700",
                 }}
@@ -777,75 +774,135 @@ export default function ToolkitModern() {
         )}
       </div>
 
-      {/* Bottom Navigation Dock */}
+      {/* Sleek Bottom Dock (Shades First, Original Layout) */}
       <nav
         style={{
-          width: "100%",
+          position: "fixed",
+          bottom: "16px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "calc(100% - 32px)",
           maxWidth: "400px",
-          margin: "0 auto",
-          backgroundColor: "#1E293B",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "24px",
-          padding: "6px 8px",
+          backgroundColor: isDark ? "rgba(10, 18, 32, 0.94)" : "rgba(255, 255, 255, 0.94)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: isDark ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.08)",
+          borderRadius: "28px",
+          padding: "8px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.7)",
-          flexShrink: 0,
+          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+          zIndex: 100,
         }}
       >
-        <button
-          onClick={() => setActiveTab("picker")}
-          style={{
-            flex: 1,
-            padding: "8px 0",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "3px",
-            borderRadius: "18px",
-            backgroundColor: activeTab === "picker" ? "rgba(56, 189, 248, 0.15)" : "transparent",
-            color: activeTab === "picker" ? "#38BDF8" : "#94A3B8",
-          }}
-        >
-          <Palette size={18} />
-          <span style={{ fontSize: "11px", fontWeight: "600" }}>Color Picker</span>
-        </button>
-
+        {/* 1st Tab: Shades */}
         <button
           onClick={() => setActiveTab("shades")}
           style={{
+            position: "relative",
             flex: 1,
             padding: "8px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "3px",
-            borderRadius: "18px",
-            backgroundColor: activeTab === "shades" ? "rgba(56, 189, 248, 0.15)" : "transparent",
-            color: activeTab === "shades" ? "#38BDF8" : "#94A3B8",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "shades" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "shades" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
           }}
         >
-          <Layers size={18} />
+          <LayoutGrid size={20} color={activeTab === "shades" ? "#0087FF" : "currentColor"} />
           <span style={{ fontSize: "11px", fontWeight: "600" }}>Shades</span>
+          {activeTab === "shades" && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087FF",
+                boxShadow: "0 0 8px #0087FF",
+              }}
+            />
+          )}
         </button>
 
+        {/* 2nd Tab: Color Picker */}
+        <button
+          onClick={() => setActiveTab("picker")}
+          style={{
+            position: "relative",
+            flex: 1,
+            padding: "8px 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "picker" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "picker" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
+          }}
+        >
+          <div
+            style={{
+              width: "18px",
+              height: "18px",
+              borderRadius: "50%",
+              border: "3px solid #3B82F6",
+              borderTopColor: "#F59E0B",
+              borderRightColor: "#10B981",
+              borderBottomColor: "#EF4444",
+            }}
+          />
+          <span style={{ fontSize: "11px", fontWeight: "600" }}>Color Picker</span>
+          {activeTab === "picker" && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087FF",
+                boxShadow: "0 0 8px #0087FF",
+              }}
+            />
+          )}
+        </button>
+
+        {/* 3rd Tab: From Image */}
         <button
           onClick={() => setActiveTab("image")}
           style={{
+            position: "relative",
             flex: 1,
             padding: "8px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "3px",
-            borderRadius: "18px",
-            backgroundColor: activeTab === "image" ? "rgba(56, 189, 248, 0.15)" : "transparent",
-            color: activeTab === "image" ? "#38BDF8" : "#94A3B8",
+            gap: "4px",
+            borderRadius: "20px",
+            backgroundColor: activeTab === "image" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            color: activeTab === "image" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
           }}
         >
-          <ImageIcon size={18} />
+          <ImageIcon size={20} color={activeTab === "image" ? "#0087FF" : "currentColor"} />
           <span style={{ fontSize: "11px", fontWeight: "600" }}>From Image</span>
+          {activeTab === "image" && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "2px",
+                width: "36px",
+                height: "2px",
+                borderRadius: "9999px",
+                backgroundColor: "#0087FF",
+                boxShadow: "0 0 8px #0087FF",
+              }}
+            />
+          )}
         </button>
       </nav>
     </div>
