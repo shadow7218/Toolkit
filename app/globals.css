@@ -3,33 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --bg: #ffffff;
-  --text: #09090b;
-  --card-bg: #f4f4f5;
-  --border-color: rgba(0, 0, 0, 0.08);
+  --bg-color: #f1f5f9;
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --text-main: #0f172a;
+  --text-sub: #64748b;
 }
 
 .dark {
-  --bg: #000000;
-  --text: #f4feff;
-  --card-bg: #0d0d0e;
-  --border-color: rgba(255, 255, 255, 0.07);
+  --bg-color: #040914;
+  --card-bg: #091224;
+  --card-border: rgba(255, 255, 255, 0.06);
+  --text-main: #f8fafc;
+  --text-sub: #8292ab;
 }
 
 body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-}
-
-/* Custom minimal scrollbar for mobile */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
 }
