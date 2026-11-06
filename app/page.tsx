@@ -1,72 +1,83 @@
 "use client";
 
-import { useState } from "react";
-import ThemeToggle from "../components/ThemeToggle";
-import ShadeGenerator from "../components/ShadeGenerator";
-import ImageEyedropper from "../components/ImageEyedropper";
-import { Layers, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import ShadesView from "../components/ShadesView";
+import EyedropperView from "../components/EyedropperView";
+import { Sun, Moon } from "lucide-react";
 
-export default function Page() {
-  const [activeTab, setActiveTab] = useState<"shades" | "eyedropper">("shades");
-  const [currentColor, setCurrentColor] = useState<string>("#0E2F76");
+export default function Home() {
+  const [tab, setTab] = useState<"shades" | "eyedropper">("shades");
+  const [currentColor, setCurrentColor] = useState<string>("#1D4ED8");
+  const [isDark, setIsDark] = useState<boolean>(true);
 
-  const handlePickColor = (hex: string) => {
-    setCurrentColor(hex);
-    setActiveTab("shades");
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
-      {/* Header */}
-      <header className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-white/5">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Toolkit<span className="text-blue-500">.</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Color shades spectrum & precision eyedropper
-          </p>
+    <main className="max-w-md mx-auto min-h-screen px-4 py-8 flex flex-col justify-between">
+      <div className="space-y-6">
+        {/* Minimal Header */}
+        <header className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-borderline">
+          <div>
+            <span className="text-[11px] font-mono tracking-widest uppercase text-zinc-400">
+              COLOR SYSTEM
+            </span>
+            <h1 className="text-xl font-bold tracking-tight">Toolkit</h1>
+          </div>
+
+          <button
+            onClick={() => setIsDark(!isDark)}
+            aria-label="Toggle Mode"
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-zinc-200 dark:border-borderline bg-zinc-100 dark:bg-card text-zinc-600 dark:text-zinc-300"
+          >
+            {isDark ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+        </header>
+
+        {/* Tab Selectors */}
+        <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-100 dark:bg-card border border-zinc-200 dark:border-borderline text-xs font-mono">
+          <button
+            onClick={() => setTab("shades")}
+            className={`py-2 rounded-lg font-medium transition-all ${
+              tab === "shades"
+                ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            Spectrum Shades
+          </button>
+          <button
+            onClick={() => setTab("eyedropper")}
+            className={`py-2 rounded-lg font-medium transition-all ${
+              tab === "eyedropper"
+                ? "bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            Image Eyedropper
+          </button>
         </div>
-        <ThemeToggle />
-      </header>
 
-      {/* Mode Navigation Tabs */}
-      <div className="flex p-1.5 rounded-2xl glass-panel max-w-sm mx-auto shadow-sm">
-        <button
-          onClick={() => setActiveTab("shades")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
-            activeTab === "shades"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          }`}
-        >
-          <Layers size={16} />
-          <span>Shades</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("eyedropper")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
-            activeTab === "eyedropper"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          }`}
-        >
-          <ImageIcon size={16} />
-          <span>Image Picker</span>
-        </button>
-      </div>
-
-      {/* Main Content Area */}
-      <div>
-        {activeTab === "shades" ? (
-          <ShadeGenerator
+        {/* Views */}
+        {tab === "shades" ? (
+          <ShadesView
             baseColor={currentColor}
-            onColorChange={(hex) => setCurrentColor(hex)}
+            onColorChange={(color) => setCurrentColor(color)}
           />
         ) : (
-          <ImageEyedropper onPickColor={handlePickColor} />
+          <EyedropperView
+            onPickColor={(hex) => {
+              setCurrentColor(hex);
+              setTab("shades");
+            }}
+          />
         )}
       </div>
+
+      <footer className="mt-8 pt-4 border-t border-zinc-200 dark:border-borderline text-center text-[10px] font-mono text-zinc-500">
+        TOOLKIT PWA • OFFLINE CAPABLE
+      </footer>
     </main>
   );
 }
