@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Toolkit - Color Shades & Precision Eyedropper",
-  description: "Generate complete lightest-to-darkest color spectrums and sample image pixels with ease.",
+  title: "Toolkit - Minimalist Palette & Eyedropper",
+  description: "Minimal monochromatic color shading tool and eyedropper.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -13,10 +13,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F4FEFF" },
-    { media: "(prefers-color-scheme: dark)", color: "#050505" },
-  ],
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -30,11 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
-      </head>
-      <body className="antialiased selection:bg-blue-600 selection:text-white transition-colors duration-300">
+      <body className="antialiased min-h-screen font-sans bg-white dark:bg-black text-black dark:text-zinc-100">
         {children}
       </body>
     </html>
