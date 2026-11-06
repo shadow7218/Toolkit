@@ -1,31 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 html, body {
-  background-color: #030712 !important;
-  color: #ffffff;
-  min-height: 100vh;
+  background-color: #0B1120 !important;
+  color: #F8FAFC;
+  height: 100%;
   width: 100%;
   overflow-x: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
 
-button {
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: inherit;
-  font-family: inherit;
+.mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* Custom smooth scrollbar */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: #334155;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38BDF8;
+  cursor: pointer;
+  border: 2px solid #0B1120;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
 ::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
+  height: 4px;
+  width: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
