@@ -9,7 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        oled: "#050505",
+        oled: "#000000",
+        surface: "#0a0a0a",
+        card: "#121212",
+        borderline: "rgba(255, 255, 255, 0.08)",
+      },
+      fontFamily: {
+        mono: ["SF Mono", "Fira Code", "Courier New", "monospace"],
       },
     },
   },
