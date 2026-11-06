@@ -11,7 +11,6 @@ import {
   Upload,
   Pin,
   Sparkles,
-  ChevronRight,
 } from "lucide-react";
 
 // --- Color Helpers ---
@@ -77,7 +76,7 @@ const standardLuminances = [96, 91, 82, 72, 60, 49, 40, 30, 22, 14, 8];
 export default function ToolkitApp() {
   const [activeTab, setActiveTab] = useState<"shades" | "picker" | "image">("shades");
   const [isDark, setIsDark] = useState<boolean>(true);
-  const [activeHex, setActiveHex] = useState<string>("#EAC786");
+  const [activeHex, setActiveHex] = useState<string>("#A5CDFD");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [showAllShades, setShowAllShades] = useState<boolean>(false);
 
@@ -92,7 +91,7 @@ export default function ToolkitApp() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [pickerPos, setPickerPos] = useState<{ x: number; y: number } | null>(null);
   const [magnifierData, setMagnifierData] = useState<string | null>(null);
-  const [pinnedColors, setPinnedColors] = useState<string[]>(["#EAC786", "#0087FF", "#10B981"]);
+  const [pinnedColors, setPinnedColors] = useState<string[]>(["#A5CDFD", "#0087FF", "#10B981"]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wheelCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -110,7 +109,6 @@ export default function ToolkitApp() {
     };
   });
 
-  // Filter: Default shows 50 to 900 without scrolling. "showAllShades" shows all steps including 950
   const displayedShades = showAllShades
     ? fullShades
     : fullShades.filter((s) => s.weight !== "950");
@@ -158,7 +156,6 @@ export default function ToolkitApp() {
       ctx.fill();
     }
 
-    // Inner cutout
     ctx.beginPath();
     ctx.arc(center, center, radius * 0.55, 0, Math.PI * 2);
     ctx.fillStyle = isDark ? "#1E293B" : "#FFFFFF";
@@ -256,19 +253,17 @@ export default function ToolkitApp() {
   return (
     <div
       style={{
-        height: "100dvh",
-        maxHeight: "100dvh",
+        minHeight: "100dvh",
         backgroundColor: isDark ? "#0B1120" : "#F8FAFC",
         color: isDark ? "#F8FAFC" : "#0F172A",
-        padding: "12px 16px 88px 16px",
+        padding: "12px 16px 82px 16px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         boxSizing: "border-box",
-        overflow: "hidden",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "420px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", flex: 1, minHeight: 0 }}>
+      <div style={{ width: "100%", maxWidth: "420px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px" }}>
         
         {/* Top Header */}
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
@@ -311,8 +306,7 @@ export default function ToolkitApp() {
             width: "100%",
             borderRadius: "18px",
             padding: "14px 18px",
-            height: "142px",
-            minHeight: "142px",
+            height: "140px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -322,7 +316,6 @@ export default function ToolkitApp() {
             transition: "background-color 0.2s ease",
           }}
         >
-          {/* Card Top Row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div
               style={{
@@ -332,7 +325,6 @@ export default function ToolkitApp() {
                 padding: "3px 10px",
                 borderRadius: "9999px",
                 backgroundColor: isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.18)",
-                backdropFilter: "blur(8px)",
                 border: "1px solid rgba(255, 255, 255, 0.15)",
               }}
             >
@@ -358,7 +350,6 @@ export default function ToolkitApp() {
             </button>
           </div>
 
-          {/* Card Bottom Row */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className="mono" style={{ fontSize: "28px", fontWeight: "800", letterSpacing: "-0.5px", color: textColor }}>
@@ -383,7 +374,7 @@ export default function ToolkitApp() {
           </div>
         </div>
 
-        {/* Tab 1: ALL SHADES (Default First Tab, No Scroll) */}
+        {/* Tab 1: COMPACT FIT SHADES BOX (Expands smoothly on Show All) */}
         {activeTab === "shades" && (
           <div
             style={{
@@ -391,29 +382,28 @@ export default function ToolkitApp() {
               border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: "18px",
               padding: "12px 14px",
-              flex: 1,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
+              gap: "8px",
+              transition: "all 0.25s ease-out",
             }}
           >
-            {/* Header with Logo Toggle Button for 50-900 / All Steps */}
+            {/* Header with Dynamic Expand/Shrink Button */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <span style={{ fontSize: "14px", fontWeight: "700" }}>Shades Sequence</span>
                 <span style={{ fontSize: "11px", color: "#94A3B8", display: "block" }}>
-                  {showAllShades ? "All 11 Spectrum Steps" : "Standard 50 → 900"}
+                  {showAllShades ? "11 Steps • Full Spectrum" : "Standard 50 → 900"}
                 </span>
               </div>
 
-              {/* Logo / Toggle Button */}
               <button
                 onClick={() => setShowAllShades(!showAllShades)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "5px",
-                  padding: "5px 10px",
+                  padding: "4px 10px",
                   borderRadius: "9999px",
                   backgroundColor: showAllShades ? "#0087FF" : "rgba(255, 255, 255, 0.08)",
                   color: showAllShades ? "#FFFFFF" : "#94A3B8",
@@ -423,15 +413,15 @@ export default function ToolkitApp() {
                 }}
               >
                 <Sparkles size={11} />
-                <span>{showAllShades ? "Show 50-900" : "Show All"}</span>
+                <span>{showAllShades ? "Collapse" : "Show All"}</span>
               </button>
             </div>
 
-            {/* Zero-Scroll Balanced Grid Container */}
+            {/* Tight Swatches Container with Zero Empty Space */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${displayedShades.length > 8 ? 5 : 4}, 1fr)`,
+                gridTemplateColumns: "repeat(5, 1fr)",
                 gap: "8px 6px",
                 width: "100%",
                 alignItems: "center",
@@ -458,21 +448,19 @@ export default function ToolkitApp() {
                       {s.weight}
                     </span>
 
-                    {/* Circular Swatch Node with 1px stroke */}
                     <div
                       style={{
-                        width: "30px",
-                        height: "30px",
+                        width: "32px",
+                        height: "32px",
                         borderRadius: "50%",
                         backgroundColor: s.hex,
                         border: isSelected ? "2.5px solid #0087FF" : "1px solid rgba(255, 255, 255, 0.18)",
                         boxShadow: isSelected ? "0 0 10px #0087FF" : "none",
-                        transform: isSelected ? "scale(1.12)" : "scale(1)",
+                        transform: isSelected ? "scale(1.1)" : "scale(1)",
                         transition: "transform 0.15s ease",
                       }}
                     />
 
-                    {/* Pill Hex Capsule */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -499,7 +487,7 @@ export default function ToolkitApp() {
               })}
             </div>
 
-            {/* Selected Shade Inspector Footer */}
+            {/* Tight Inspector Footer */}
             <div
               style={{
                 padding: "6px 12px",
@@ -520,22 +508,20 @@ export default function ToolkitApp() {
           </div>
         )}
 
-        {/* Tab 2: Circular Color Wheel Picker */}
+        {/* Tab 2: Color Wheel */}
         {activeTab === "picker" && (
           <div
             style={{
               backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
               border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: "18px",
-              padding: "12px 16px",
-              flex: 1,
+              padding: "14px 16px",
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
+              gap: "12px",
               alignItems: "center",
             }}
           >
-            {/* Round & Centered Color Wheel */}
             <div style={{ position: "relative", width: "136px", height: "136px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <canvas
                 ref={wheelCanvasRef}
@@ -558,7 +544,6 @@ export default function ToolkitApp() {
               />
             </div>
 
-            {/* Sliders */}
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "6px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "11px", color: "#94A3B8" }}>
                 <span>Lightness</span>
@@ -587,7 +572,6 @@ export default function ToolkitApp() {
               />
             </div>
 
-            {/* Family & Hex Info */}
             <div
               style={{
                 width: "100%",
@@ -602,7 +586,7 @@ export default function ToolkitApp() {
             >
               <div>
                 <span style={{ fontSize: "12px", fontWeight: "700" }}>{colorName}</span>
-                <span style={{ fontSize: "10px", color: "#94A3B8", display: "block" }}>Dominant Family</span>
+                <span style={{ fontSize: "10px", color: "#94A3B8", display: "block" }}>Family</span>
               </div>
               <span className="mono" style={{ fontSize: "12px", fontWeight: "700", color: "#38BDF8" }}>
                 {activeHex}
@@ -611,7 +595,7 @@ export default function ToolkitApp() {
           </div>
         )}
 
-        {/* Tab 3: Eyedropper with Real Magnifier Bubble */}
+        {/* Tab 3: Eyedropper */}
         {activeTab === "image" && (
           <div
             style={{
@@ -619,10 +603,9 @@ export default function ToolkitApp() {
               border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: "18px",
               padding: "12px 14px",
-              flex: 1,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
+              gap: "10px",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -726,7 +709,6 @@ export default function ToolkitApp() {
               </div>
             )}
 
-            {/* Pinned Swatches */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "11px", color: "#94A3B8" }}>Pinned:</span>
@@ -774,135 +756,94 @@ export default function ToolkitApp() {
         )}
       </div>
 
-      {/* Sleek Bottom Dock (Shades First, Original Layout) */}
+      {/* SOLID FUSION BOTTOM BAR (No Liquid Glass) */}
       <nav
         style={{
           position: "fixed",
-          bottom: "16px",
+          bottom: "12px",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "calc(100% - 32px)",
-          maxWidth: "400px",
-          backgroundColor: isDark ? "rgba(10, 18, 32, 0.94)" : "rgba(255, 255, 255, 0.94)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: isDark ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.08)",
+          width: "calc(100% - 24px)",
+          maxWidth: "390px",
+          backgroundColor: isDark ? "#121824" : "#FFFFFF",
+          border: isDark ? "1px solid #1E283A" : "1px solid rgba(0, 0, 0, 0.08)",
           borderRadius: "28px",
-          padding: "8px",
+          padding: "5px 6px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.6)",
           zIndex: 100,
         }}
       >
-        {/* 1st Tab: Shades */}
+        {/* 1. Shades */}
         <button
           onClick={() => setActiveTab("shades")}
           style={{
-            position: "relative",
             flex: 1,
             padding: "8px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "4px",
-            borderRadius: "20px",
-            backgroundColor: activeTab === "shades" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            gap: "3px",
+            borderRadius: "22px",
+            backgroundColor: activeTab === "shades" ? (isDark ? "#1D283C" : "#E2E8F0") : "transparent",
             color: activeTab === "shades" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
+            transition: "background-color 0.15s ease",
           }}
         >
-          <LayoutGrid size={20} color={activeTab === "shades" ? "#0087FF" : "currentColor"} />
+          <LayoutGrid size={18} color={activeTab === "shades" ? "#0087FF" : "currentColor"} />
           <span style={{ fontSize: "11px", fontWeight: "600" }}>Shades</span>
-          {activeTab === "shades" && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: "2px",
-                width: "36px",
-                height: "2px",
-                borderRadius: "9999px",
-                backgroundColor: "#0087FF",
-                boxShadow: "0 0 8px #0087FF",
-              }}
-            />
-          )}
         </button>
 
-        {/* 2nd Tab: Color Picker */}
+        {/* 2. Color Picker */}
         <button
           onClick={() => setActiveTab("picker")}
           style={{
-            position: "relative",
             flex: 1,
             padding: "8px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "4px",
-            borderRadius: "20px",
-            backgroundColor: activeTab === "picker" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            gap: "3px",
+            borderRadius: "22px",
+            backgroundColor: activeTab === "picker" ? (isDark ? "#1D283C" : "#E2E8F0") : "transparent",
             color: activeTab === "picker" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
+            transition: "background-color 0.15s ease",
           }}
         >
           <div
             style={{
-              width: "18px",
-              height: "18px",
+              width: "16px",
+              height: "16px",
               borderRadius: "50%",
-              border: "3px solid #3B82F6",
+              border: "2.5px solid #3B82F6",
               borderTopColor: "#F59E0B",
               borderRightColor: "#10B981",
               borderBottomColor: "#EF4444",
             }}
           />
           <span style={{ fontSize: "11px", fontWeight: "600" }}>Color Picker</span>
-          {activeTab === "picker" && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: "2px",
-                width: "36px",
-                height: "2px",
-                borderRadius: "9999px",
-                backgroundColor: "#0087FF",
-                boxShadow: "0 0 8px #0087FF",
-              }}
-            />
-          )}
         </button>
 
-        {/* 3rd Tab: From Image */}
+        {/* 3. From Image */}
         <button
           onClick={() => setActiveTab("image")}
           style={{
-            position: "relative",
             flex: 1,
             padding: "8px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "4px",
-            borderRadius: "20px",
-            backgroundColor: activeTab === "image" ? "rgba(0, 135, 255, 0.12)" : "transparent",
+            gap: "3px",
+            borderRadius: "22px",
+            backgroundColor: activeTab === "image" ? (isDark ? "#1D283C" : "#E2E8F0") : "transparent",
             color: activeTab === "image" ? (isDark ? "#FFFFFF" : "#0F172A") : isDark ? "#64748B" : "#94A3B8",
+            transition: "background-color 0.15s ease",
           }}
         >
-          <ImageIcon size={20} color={activeTab === "image" ? "#0087FF" : "currentColor"} />
+          <ImageIcon size={18} color={activeTab === "image" ? "#0087FF" : "currentColor"} />
           <span style={{ fontSize: "11px", fontWeight: "600" }}>From Image</span>
-          {activeTab === "image" && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: "2px",
-                width: "36px",
-                height: "2px",
-                borderRadius: "9999px",
-                backgroundColor: "#0087FF",
-                boxShadow: "0 0 8px #0087FF",
-              }}
-            />
-          )}
         </button>
       </nav>
     </div>
